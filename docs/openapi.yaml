@@ -1,0 +1,486 @@
+openapi: 3.0.3
+info:
+  title: Data Monetization Platform API
+  version: 0.1.0
+  description: >
+    Черновая спецификация API для MVP платформы безопасной монетизации
+    обезличенных клиентских данных.
+servers:
+  - url: /
+security:
+  - oauth2ClientCredentials: []
+paths:
+  /v1/company/products:
+    get:
+      summary: Получить каталог доступных дата-продуктов
+      tags: [Company]
+      responses:
+        '200':
+          description: Каталог продуктов
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+  /v1/company/products/{productId}:
+    get:
+      summary: Получить описание конкретного дата-продукта
+      tags: [Company]
+      parameters:
+        - in: path
+          name: productId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Описание продукта
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+  /v1/company/requests:
+    post:
+      summary: Создать запрос на дата-продукт
+      tags: [Company]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRequest'
+      responses:
+        '201':
+          description: Запрос создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestStatus'
+  /v1/company/requests/{requestId}:
+    get:
+      summary: Получить статус запроса
+      tags: [Company]
+      parameters:
+        - in: path
+          name: requestId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Статус запроса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestStatus'
+  /v1/company/datasets/{datasetId}:
+    get:
+      summary: Получить агрегированный dataset
+      tags: [Company]
+      parameters:
+        - in: path
+          name: datasetId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: period
+          schema:
+            type: string
+          example: 2026-03
+        - in: query
+          name: region
+          schema:
+            type: string
+          example: moscow
+        - in: query
+          name: ageBand
+          schema:
+            type: string
+          example: 25-34
+        - in: query
+          name: segment
+          schema:
+            type: string
+          example: travellers
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 1000
+        - in: query
+          name: cursor
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Агрегированный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatasetResponse'
+              examples:
+                audienceCore:
+                  summary: Категории расходов и демография
+                  value:
+                    datasetId: audience-core
+                    productId: audience-core
+                    rows:
+                      - period: '2026-03'
+                        region: moscow
+                        ageBand: 25-34
+                        gender: female
+                        spendCategory: groceries
+                        users: 18420
+                        txCount: 53210
+                        avgCheck: 786.4
+                        totalVolume: 41852144.0
+                        categoryShare: 0.31
+                    privacy:
+                      kMin: 30
+                      noiseApplied: true
+                      suppressedRows: 2
+                behaviorGeo:
+                  summary: Поведенческие сегменты и агрегированная география
+                  value:
+                    datasetId: behavior-geo
+                    productId: behavior-geo
+                    rows:
+                      - period: '2026-03'
+                        regionCluster: moscow_north
+                        segment: travellers
+                        spendCategory: travel
+                        weekdayGroup: weekend
+                        users: 4210
+                        avgCheck: 4210.7
+                        purchaseFrequency: 3.8
+                        seasonalityIndex: 1.24
+                        onlineShare: 0.67
+                    privacy:
+                      kMin: 30
+                      noiseApplied: true
+                      suppressedRows: 1
+                financialSignals:
+                  summary: Финансовые индикаторы и сигналы спроса
+                  value:
+                    datasetId: financial-signals
+                    productId: financial-signals
+                    rows:
+                      - period: '2026-03-20T10:00:00Z'
+                        region: moscow
+                        segment: premium
+                        incomeBand: high
+                        savingsBand: medium
+                        users: 2180
+                        investmentActivityIndex: 0.74
+                        savingsPropensityIndex: 0.61
+                        financialStabilityIndex: 0.83
+                        demandPulse: 1.12
+                    privacy:
+                      kMin: 50
+                      noiseApplied: true
+                      suppressedRows: 3
+  /v1/company/datasets/{datasetId}/exports:
+    post:
+      summary: Заказать асинхронную выгрузку
+      tags: [Company]
+      parameters:
+        - in: path
+          name: datasetId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                format:
+                  type: string
+                  enum: [csv, parquet, json]
+                filters:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '202':
+          description: Выгрузка поставлена в очередь
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportJob'
+  /v1/company/exports/{exportId}:
+    get:
+      summary: Получить статус выгрузки
+      tags: [Company]
+      parameters:
+        - in: path
+          name: exportId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Статус выгрузки
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportJob'
+  /v1/client/consents:
+    get:
+      summary: Получить активные согласия клиента
+      tags: [Client]
+      responses:
+        '200':
+          description: Список согласий
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Consent'
+    put:
+      summary: Обновить согласия клиента
+      tags: [Client]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ConsentUpdate'
+      responses:
+        '200':
+          description: Согласия обновлены
+  /v1/client/access-history:
+    get:
+      summary: Получить историю использования данных
+      tags: [Client]
+      responses:
+        '200':
+          description: История использования
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AccessHistoryItem'
+  /v1/client/rewards:
+    get:
+      summary: Получить начисления клиента
+      tags: [Client]
+      responses:
+        '200':
+          description: История вознаграждений
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  balance:
+                    type: number
+                    format: double
+                  currency:
+                    type: string
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RewardItem'
+  /v1/admin/requests:
+    get:
+      summary: Получить список B2B-запросов
+      tags: [Admin]
+      responses:
+        '200':
+          description: Список запросов
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RequestStatus'
+  /v1/admin/requests/{requestId}/approve:
+    post:
+      summary: Одобрить запрос компании
+      tags: [Admin]
+      parameters:
+        - in: path
+          name: requestId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Запрос одобрен
+components:
+  securitySchemes:
+    oauth2ClientCredentials:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.example.com/oauth/token
+          scopes: {}
+  schemas:
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        accessLevel:
+          type: string
+          enum: [standard, advanced, premium]
+        priceModel:
+          type: string
+          example: subscription
+        deliveryModes:
+          type: array
+          items:
+            type: string
+            enum: [api, export]
+        dimensions:
+          type: array
+          items:
+            type: string
+        metrics:
+          type: array
+          items:
+            type: string
+        aggregationLevel:
+          type: string
+          example: segment-region-period
+        refreshRate:
+          type: string
+          example: daily
+    CreateRequest:
+      type: object
+      required: [productId, filters]
+      properties:
+        productId:
+          type: string
+        filters:
+          type: object
+          additionalProperties: true
+        deliveryMode:
+          type: string
+          enum: [api, export]
+    RequestStatus:
+      type: object
+      properties:
+        requestId:
+          type: string
+        productId:
+          type: string
+        status:
+          type: string
+          enum: [pending, approved, rejected, processing, ready, completed]
+        price:
+          type: number
+          format: double
+    DatasetResponse:
+      type: object
+      properties:
+        datasetId:
+          type: string
+        productId:
+          type: string
+        rows:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        privacy:
+          type: object
+          properties:
+            kMin:
+              type: integer
+            noiseApplied:
+              type: boolean
+            suppressedRows:
+              type: integer
+    ExportJob:
+      type: object
+      properties:
+        exportId:
+          type: string
+        format:
+          type: string
+          enum: [csv, parquet, json]
+        status:
+          type: string
+          enum: [queued, processing, ready, failed]
+        downloadUrl:
+          type: string
+          nullable: true
+    Consent:
+      type: object
+      properties:
+        category:
+          type: string
+        purpose:
+          type: string
+        enabled:
+          type: boolean
+        policyVersion:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
+    ConsentUpdate:
+      type: object
+      properties:
+        category:
+          type: string
+        purpose:
+          type: string
+        enabled:
+          type: boolean
+    AccessHistoryItem:
+      type: object
+      properties:
+        companyName:
+          type: string
+        productName:
+          type: string
+        usedAt:
+          type: string
+          format: date-time
+        dataScope:
+          type: string
+    RewardItem:
+      type: object
+      properties:
+        rewardId:
+          type: string
+        amount:
+          type: number
+          format: double
+        currency:
+          type: string
+        status:
+          type: string
+          enum: [pending, accrued, paid]
+        createdAt:
+          type: string
+          format: date-time

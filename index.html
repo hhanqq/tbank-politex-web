@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>T-Bank Shariki Docs</title>
+    <style>
+      :root {
+        --bg: #fbfaf6;
+        --card: #ffffff;
+        --text: #1f2430;
+        --muted: #697386;
+        --accent: #f5c84c;
+        --line: #ece7d9;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background:
+          radial-gradient(circle at top left, rgba(245, 200, 76, 0.16), transparent 28%),
+          linear-gradient(180deg, #fffdf7 0%, var(--bg) 100%);
+        color: var(--text);
+      }
+      .wrap {
+        max-width: 920px;
+        margin: 0 auto;
+        padding: 48px 20px 64px;
+      }
+      h1 {
+        margin: 0 0 12px;
+        font-size: 40px;
+        line-height: 1.05;
+      }
+      p.lead {
+        margin: 0 0 28px;
+        font-size: 18px;
+        line-height: 1.5;
+        color: var(--muted);
+        max-width: 720px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 16px;
+      }
+      .card {
+        display: block;
+        padding: 22px;
+        border-radius: 24px;
+        background: var(--card);
+        border: 1px solid var(--line);
+        box-shadow: 0 10px 30px rgba(34, 44, 63, 0.06);
+        text-decoration: none;
+        color: inherit;
+      }
+      .card:hover {
+        border-color: var(--accent);
+        transform: translateY(-1px);
+      }
+      .eyebrow {
+        display: inline-block;
+        margin-bottom: 12px;
+        padding: 7px 12px;
+        border-radius: 999px;
+        background: #fff4cb;
+        color: #8a6400;
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .title {
+        margin: 0 0 8px;
+        font-size: 24px;
+      }
+      .desc {
+        margin: 0;
+        line-height: 1.45;
+        color: var(--muted);
+      }
+      .footer {
+        margin-top: 28px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      code {
+        padding: 2px 6px;
+        border-radius: 6px;
+        background: #f5f2e8;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <h1>T-Bank Shariki</h1>
+      <p class="lead">
+        Локальная документация по кейсу: архитектура платформы, B2B API для
+        компаний и черновик OpenAPI-спеки.
+      </p>
+
+      <section class="grid">
+        <a class="card" href="/docs/architecture.md">
+          <span class="eyebrow">Архитектура</span>
+          <h2 class="title">Architecture</h2>
+          <p class="desc">
+            Верхнеуровневая схема, backend на Go, анонимизация, выплаты,
+            Use Case, DFD и функциональные границы MVP.
+          </p>
+        </a>
+
+        <a class="card" href="/docs/company-api.md">
+          <span class="eyebrow">B2B API</span>
+          <h2 class="title">Company API</h2>
+          <p class="desc">
+            Какие дата-продукты видит компания, как создает запрос и в каком
+            формате получает агрегированные данные.
+          </p>
+        </a>
+
+        <a class="card" href="/docs/openapi.yaml">
+          <span class="eyebrow">Спецификация</span>
+          <h2 class="title">OpenAPI</h2>
+          <p class="desc">
+            Черновик REST API: endpoints, query-параметры, схемы ответов и
+            примеры датасетов для компаний.
+          </p>
+        </a>
+
+        <a class="card" href="/swagger/">
+          <span class="eyebrow">Swagger UI</span>
+          <h2 class="title">Swagger</h2>
+          <p class="desc">
+            Обычная интерактивная документация: смотри схемы, примеры и
+            пробуй запросы прямо из браузера.
+          </p>
+        </a>
+      </section>
+
+      <p class="footer">
+        Если нужен именно запущенный Go backend, его еще не реализовывали:
+        сейчас в проекте есть только проектная документация и API-контракты.
+      </p>
+    </main>
+  </body>
+  </html>
